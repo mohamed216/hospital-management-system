@@ -4,22 +4,47 @@ namespace App\Models;
 
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Patient extends Authenticatable
 {
     use Translatable;
     use HasFactory;
-    public $translatedAttributes = ['name','Address'];
-    public $fillable= ['email','Password','Date_Birth','Phone','Gender','Blood_Group'];
 
-   public function doctor()
-    {
-       return $this->belongsTo(Invoice::class,'doctor_id');
-   }
+    public $translatedAttributes = ['name', 'address'];
+    public $fillable = ['email', 'password', 'date_birth', 'phone', 'gender', 'blood_group', 'image'];
 
-    public function service()
+    protected $hidden = ['password', 'remember_token'];
+
+    // Relationships
+    public function invoices(): HasMany
     {
-        return $this->belongsTo(Invoice::class,'Service_id');
-   }
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    public function receipts(): HasMany
+    {
+        return $this->hasMany(ReceiptAccount::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(PaymentAccount::class);
+    }
+
+    // Accessor for age
+    public function getAgeAttribute(): ?int
+    {
+        if (!$this->date_birth) {
+            return null;
+        }
+        return \Carbon\Carbon::parse($this->date_birth)->age;
+    }
 }
